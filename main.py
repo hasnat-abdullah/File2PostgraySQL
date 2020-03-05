@@ -8,7 +8,7 @@ try:
     cur = connection.cursor()
 
 #----Table Creation----
-    create_table_query = '''CREATE TABLE saleHistory
+    create_table_query = '''CREATE TABLE IF NOT EXISTS saleHistory
           (year INT PRIMARY KEY     NOT NULL,
           amount           INT    NOT NULL); '''
     cur.execute(create_table_query)
@@ -24,7 +24,7 @@ uploadedFile = xlrd.open_workbook(excelLoc)
 sheet = uploadedFile.sheet_by_index(0)  #First sheet selection from excel sheet
 
 #----Data Import from sheet----
-query = """INSERT INTO saleHistory (year, amount) VALUES (%s, %s)"""
+query = """INSERT INTO saleHistory (year, amount) VALUES (%s, %s) ON CONFLICT DO NOTHING"""
 for r in range(1, sheet.nrows):  #Range from 1 due to avoid Header
     year = sheet.cell(r,0).value
     amount = sheet.cell(r,1).value
@@ -32,20 +32,20 @@ for r in range(1, sheet.nrows):  #Range from 1 due to avoid Header
     cur.execute(query, values)
 
 connection.commit()
-print("Successfully imported Excel into postgreSQL")
+print("Successfully imported Excel into postgreSQL \n")
 
 #----Show Data from postGray----
 view_query="select * from saleHistory"
 cur.execute(view_query)
 sale_records = cur.fetchall()
 
-print("Here is the values of Sale History Table")
+print("Here is the values of Sale History Table\n")
 print("Year \t Amount")
 for row in sale_records:
     print(row[0],"\t", row[1])
 
-# closing database connection.
+#----closing database connection----
 if (connection):
     cur.close()
     connection.close()
-    print("PostgreSQL connection is closed")
+    print("\nPostgreSQL connection is closed")
